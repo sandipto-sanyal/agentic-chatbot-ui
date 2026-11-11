@@ -20,12 +20,20 @@ const MESSAGE_TYPES = [
 
 type MessageType = (typeof MESSAGE_TYPES)[number]
 
+// Tool results arrive as a list of objects, e.g. get_similar_tasks returns the matching
+// task text plus the SQL it used (under metadata.query) and a similarity score.
+type ToolResult = {
+  text: string
+  metadata?: Record<string, unknown>
+  score?: number
+}
+
 // The spec is inconsistent about casing: SubagentMessage uses `toolname`, the others use `toolName`.
 type ServerMessage = {
   type_: MessageType
   toolName: string | null
   step: number | null
-  content: string
+  content: string | ToolResult[]
 }
 
 type Turn = {
@@ -44,15 +52,24 @@ function normalize(raw: unknown): ServerMessage | null {
   const item = raw as Record<string, unknown>
   const type = item.type_
   if (typeof type !== "string" || !(MESSAGE_TYPES as readonly string[]).includes(type)) return null
-  if (typeof item.content !== "string") return null
+  const content = item.content
+  const isText = typeof content === "string"
+  const isResultList = Array.isArray(content)
+  if (!isText && !isResultList) return null
 
   const toolName = item.toolName ?? item.toolname
   return {
     type_: type as MessageType,
     toolName: typeof toolName === "string" ? toolName : null,
     step: typeof item.step === "number" ? item.step : null,
-    content: item.content,
+    content: isText ? content : (content as ToolResult[]),
   }
+}
+
+// Flatten either content shape to plain text (used for the final answer).
+function contentToText(content: string | ToolResult[]): string {
+  if (typeof content === "string") return content
+  return content.map((result) => result.text).join("\n\n")
 }
 
 // The server sends either a single message or an array of them per frame.
@@ -79,7 +96,7 @@ function applyMessage(turns: Turn[], message: ServerMessage): Turn[] {
   const turn = turns[index]
   const updated: Turn =
     message.type_ === "OrchestratorMessage"
-      ? { ...turn, answer: message.content, status: "done" }
+      ? { ...turn, answer: contentToText(message.content), status: "done" }
       : { ...turn, events: [...turn.events, message] }
 
   return turns.map((t, i) => (i === index ? updated : t))
@@ -260,9 +277,54 @@ function EventRow({ event }: { event: ServerMessage }) {
         {event.toolName && <span className="font-mono">{event.toolName}</span>}
         {event.step !== null && <span>step {event.step}</span>}
       </div>
-      <pre className="max-h-48 overflow-auto whitespace-pre-wrap font-mono text-xs">
-        {event.content}
-      </pre>
+      {event.type_ === "ToolMessage" || event.type_ === "SubagentMessage" ? (
+        <MarkdownBody content={event.content} />
+      ) : typeof event.content === "string" ? (
+        <pre className="max-h-48 overflow-auto whitespace-pre-wrap font-mono text-xs">
+          {event.content}
+        </pre>
+      ) : (
+        <pre className="max-h-48 overflow-auto whitespace-pre-wrap font-mono text-xs">
+          {contentToText(event.content)}
+        </pre>
+      )}
+    </div>
+  )
+}
+
+// Tool and subagent output is Markdown: render it with the same renderer as answers. Result
+// lists show each result's text, its score, and the SQL from metadata.query as a fenced block.
+function MarkdownBody({ content }: { content: string | ToolResult[] }) {
+  if (typeof content === "string") {
+    return <ToolMarkdown>{content}</ToolMarkdown>
+  }
+
+  return (
+    <div className="flex flex-col gap-2">
+      {content.map((result, i) => {
+        const query = result.metadata?.query
+        return (
+          <div key={i} className="flex flex-col gap-1 rounded-md border bg-background p-2">
+            {typeof result.score === "number" && (
+              <div className="flex justify-end">
+                <Badge variant="outline">{result.score.toFixed(2)}</Badge>
+              </div>
+            )}
+            <ToolMarkdown>{result.text}</ToolMarkdown>
+            {typeof query === "string" && (
+              <ToolMarkdown>{"```sql\n" + query + "\n```"}</ToolMarkdown>
+            )}
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
+function ToolMarkdown({ children }: { children: string }) {
+  return (
+    <div className="text-xs [&_code]:font-mono [&_p]:my-1 [&_pre]:overflow-auto [&_pre]:rounded-md [&_pre]:bg-muted [&_pre]:p-2 [&_table]:text-left">
+      <Markdown remarkPlugins={[remarkGfm]}>{children}</Markdown>
     </div>
   )
 }
