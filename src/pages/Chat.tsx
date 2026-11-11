@@ -6,6 +6,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { Input } from "@/components/ui/input"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import Markdown from "react-markdown"
+import remarkGfm from 'remark-gfm'
 
 // API_SPEC: the Flask server exposes the websocket at /ws (the spec writes it as http://; browsers need ws://).
 const WS_URL = "ws://127.0.0.1:5000/ws"
@@ -204,7 +205,7 @@ function TurnView({ turn }: { turn: Turn }) {
           <CardHeader>
             <CardTitle>Answer</CardTitle>
           </CardHeader>
-          <CardContent className="whitespace-pre-wrap text-sm"><Markdown>{turn.answer}</Markdown></CardContent>
+          <CardContent className="whitespace-pre-wrap text-sm"><Markdown remarkPlugins={[remarkGfm]}>{turn.answer}</Markdown></CardContent>
         </Card>
       )}
 

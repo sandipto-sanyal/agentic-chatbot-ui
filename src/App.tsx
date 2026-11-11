@@ -1,18 +1,23 @@
-import { BrowserRouter, Routes, Route, Link } from "react-router-dom";
+import { BrowserRouter, Routes, Route, NavLink } from "react-router-dom";
 import Home from "./pages/Home";
 import About from "./pages/About";
 import Dashboard from "./pages/Dashboard";
 import Chat from "./pages/Chat";
 import TestPage from "./pages/Test";
 
+// NavLink marks the link whose route is currently open as active, so the
+// highlight follows the click and also works with back/forward and direct URLs.
+const navLinkClass = ({ isActive }: { isActive: boolean }) =>
+  `mr-4 ${isActive ? "text-brand-primary" : ""}`;
+
 export default function App() {
   return (
     <BrowserRouter>
       <nav className="p-4 bg-[#eee]">
-        <Link to="/" className="mr-4">Home</Link>
-        <Link to="/about" className="mr-4">About</Link>
-        <Link to="/dashboard" className="mr-4">Dashboard</Link>
-        <Link to="/chat">Chat</Link>
+        <NavLink to="/" end className={navLinkClass}>Home</NavLink>
+        <NavLink to="/about" className={navLinkClass}>About</NavLink>
+        {/* <NavLink to="/dashboard" className={navLinkClass}>Dashboard</NavLink> */}
+        <NavLink to="/chat" className={navLinkClass}>Chat</NavLink>
       </nav>
 
       <Routes>

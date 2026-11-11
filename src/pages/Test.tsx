@@ -12,6 +12,9 @@ export default function TestPage() {
         '| Elena   | Support    | Customer    | Inactive |',
     ].join('\n')
     return (
-        <Markdown remarkPlugins={[remarkGfm]}>{markdown}</Markdown>
+        <>
+            
+            <Markdown remarkPlugins={[remarkGfm]}>{markdown}</Markdown>
+        </>
     )
 }
