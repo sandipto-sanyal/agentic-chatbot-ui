@@ -7,6 +7,24 @@ import { Input } from "@/components/ui/input"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import Markdown from "react-markdown"
 import remarkGfm from 'remark-gfm'
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import { toast, Toaster } from "@/components/ui/toast"
+
+const DATABASES = [
+  { label: "Select Database", value: "" },
+  { label: "Employees", value: "employees" }
+]
+
+
+
 
 // API_SPEC: the Flask server exposes the websocket at /ws (the spec writes it as http://; browsers need ws://).
 const WS_URL = "ws://127.0.0.1:5000/ws"
@@ -16,6 +34,7 @@ const MESSAGE_TYPES = [
   "ToolMessage",
   "SubagentMessage",
   "OrchestratorMessage",
+  "QueryRunnerMessage"
 ] as const
 
 type MessageType = (typeof MESSAGE_TYPES)[number]
@@ -95,7 +114,7 @@ function applyMessage(turns: Turn[], message: ServerMessage): Turn[] {
 
   const turn = turns[index]
   const updated: Turn =
-    message.type_ === "OrchestratorMessage"
+    message.type_ === "QueryRunnerMessage"
       ? { ...turn, answer: contentToText(message.content), status: "done" }
       : { ...turn, events: [...turn.events, message] }
 
@@ -112,6 +131,7 @@ export default function Chat() {
   const [turns, setTurns] = useState<Turn[]>([])
   const [draft, setDraft] = useState("")
   const [connection, setConnection] = useState<Connection>("connecting")
+  const [database, setDatabase] = useState<string>("")
   const socketRef = useRef<WebSocket | null>(null)
   const nextId = useRef(1)
   const endRef = useRef<HTMLDivElement>(null)
@@ -158,13 +178,45 @@ export default function Chat() {
     const task = draft.trim()
     const socket = socketRef.current
     if (!task || busy || !socket || socket.readyState !== WebSocket.OPEN) return
-
-    socket.send(JSON.stringify({ task }))
+    if (database === "") {
+      toast.add({
+        type:"error",
+        description:"A database must be selected",
+        priority: "high"
+      })
+      return
+    }
+    socket.send(JSON.stringify({ 
+      "task" : task,
+      "database":database
+    }))
     const id = nextId.current++
     setTurns((prev) => [...prev, { id, task, events: [], answer: null, status: "running" }])
     setDraft("")
   }
 
+
+  function renderDatabases() {
+    return (
+      <Select items={DATABASES} 
+      onValueChange={(e) => {setDatabase(e as string)}} 
+      defaultValue={DATABASES[0].value}>
+        <SelectTrigger className="h-9 w-44 shrink-0 border-0 bg-transparent px-3 shadow-none data-[size=default]:h-9 focus-visible:ring-0">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectGroup>
+            <SelectLabel>Databases</SelectLabel>
+            {DATABASES.map((item) => (
+              <SelectItem key={item.value} value={item.value}>
+                {item.label}
+              </SelectItem>
+            ))}
+          </SelectGroup>
+        </SelectContent>
+      </Select>
+    )
+  }
   return (
     <div className="mx-auto flex h-[calc(100vh-6rem)] max-w-3xl flex-col gap-4 p-4">
       <header className="flex items-center justify-between">
@@ -188,18 +240,27 @@ export default function Chat() {
         </div>
       </ScrollArea>
 
-      <form onSubmit={handleSubmit} className="flex gap-2">
+      <form onSubmit={handleSubmit} className="flex items-center gap-2 rounded-xl border bg-card p-2 shadow-sm">
         <Input
           value={draft}
           onChange={(e) => setDraft(e.target.value)}
-          placeholder="Ask a question…"
+          placeholder="Ask a question..."
           aria-label="Message"
           disabled={connection !== "open"}
+          className="h-9 flex-1 border-0 bg-transparent px-3 shadow-none focus-visible:ring-0 dark:bg-transparent"
         />
-        <Button type="submit" disabled={!canSend}>
+        <div className="h-6 w-px shrink-0 bg-border" aria-hidden="true" />
+        {renderDatabases()}
+        <Button type="submit" disabled={!canSend} className="h-9 shrink-0 px-4">
           Send
         </Button>
       </form>
+      <Toaster />
+      <div className="hidden">
+        <pre>
+          {JSON.stringify(database, null, 2)}
+        </pre>
+      </div>
     </div>
   )
 }
