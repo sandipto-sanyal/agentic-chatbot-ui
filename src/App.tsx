@@ -16,7 +16,7 @@ export default function App() {
       <nav className="p-4 bg-[#eee]">
         <NavLink to="/" end className={navLinkClass}>Home</NavLink>
         <NavLink to="/about" className={navLinkClass}>About</NavLink>
-        {/* <NavLink to="/dashboard" className={navLinkClass}>Dashboard</NavLink> */}
+        <NavLink to="/dashboard" className={navLinkClass}>Dashboard</NavLink>
         <NavLink to="/chat" className={navLinkClass}>Chat</NavLink>
       </nav>
 
