@@ -17,17 +17,14 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { toast, Toaster } from "@/components/ui/toast"
-
-const DATABASES = [
-  { label: "Select Database", value: "" },
-  { label: "Employees", value: "employees" }
-]
+import { DATABASES } from "@/common/databases"
 
 
 
 
 // API_SPEC: the Flask server exposes the websocket at /ws (the spec writes it as http://; browsers need ws://).
-const WS_URL = "ws://127.0.0.1:5000/ws"
+// Set in .env as VITE_WS_URL.
+const WS_URL = import.meta.env.VITE_WS_URL
 
 const MESSAGE_TYPES = [
   "ProgressMessage",

@@ -16,15 +16,15 @@ export default function App() {
       <nav className="p-4 bg-[#eee]">
         <NavLink to="/" end className={navLinkClass}>Home</NavLink>
         <NavLink to="/about" className={navLinkClass}>About</NavLink>
-        <NavLink to="/dashboard" className={navLinkClass}>Dashboard</NavLink>
         <NavLink to="/chat" className={navLinkClass}>Chat</NavLink>
+        <NavLink to="/dashboard" className={navLinkClass}>Dashboard</NavLink>
       </nav>
 
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/about" element={<About />} />
-        <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/chat" element={<Chat />} />
+        <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/test" element={<TestPage />} />
       </Routes>
     </BrowserRouter>
