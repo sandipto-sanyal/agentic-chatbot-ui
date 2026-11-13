@@ -17,6 +17,7 @@ import { Button } from "@/components/ui/button"
 import type { DashboardCardData, DashboardRow } from "@/lib/dashboardApi"
 import { compilePlotlyCode } from "@/lib/compilePlotlyCode"
 import Plot from 'react-plotly.js';
+import { paletteColor } from "@/common/plotly_palette"
 
 const PREVIEW_ROWS = 20
 
@@ -40,6 +41,7 @@ type PlotlyDataType = {
   y: Array<string | number>;
   text?: Array<string>;
   type: string;
+  marker?: { color: string };
 
 }
 export function DashboardView({ dashboard, rows, onBack }: DashboardViewProps) {
@@ -69,11 +71,12 @@ function PlotGraph(rows: DashboardRow[], code: string) {
     const plotlyDirectives: PlotlyDirective[] = JSON.parse(stripCodeFences(code));
 
 
-    for (const directive of plotlyDirectives) {
+    for (const [index, directive] of plotlyDirectives.entries()) {
       var d: PlotlyDataType = {
         x: rows.map(row => (row[directive.x] ?? "") as string | number),
         y: rows.map(row => (row[directive.y] ?? "") as string | number),
-        type: directive.type
+        type: directive.type,
+        marker: { color: paletteColor(index) }
       }
       // Add text later, if required
       try {
