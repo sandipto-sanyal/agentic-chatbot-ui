@@ -56,6 +56,9 @@ type Turn = {
   id: number
   task: string
   events: ServerMessage[]
+  // Query output (QueryRunnerMessage) shown as soon as it arrives; the turn keeps running.
+  results: string[]
+  // Final reply (OrchestratorMessage) — the only message that completes the turn.
   answer: string | null
   status: "running" | "done" | "error"
   error?: string
@@ -110,10 +113,15 @@ function applyMessage(turns: Turn[], message: ServerMessage): Turn[] {
   if (index === -1) return turns
 
   const turn = turns[index]
-  const updated: Turn =
-    (message.type_ === "QueryRunnerMessage") ||(message.type_ === "OrchestratorMessage") 
-      ? { ...turn, answer: contentToText(message.content), status: "done" }
-      : { ...turn, events: [...turn.events, message] }
+  let updated: Turn
+  if (message.type_ === "QueryRunnerMessage") {
+    // Show the query output now, but leave the turn running so the activity stays open.
+    updated = { ...turn, results: [...turn.results, contentToText(message.content)] }
+  } else if (message.type_ === "OrchestratorMessage") {
+    updated = { ...turn, answer: contentToText(message.content), status: "done" }
+  } else {
+    updated = { ...turn, events: [...turn.events, message] }
+  }
 
   return turns.map((t, i) => (i === index ? updated : t))
 }
@@ -188,7 +196,7 @@ export default function Chat() {
       "database":database
     }))
     const id = nextId.current++
-    setTurns((prev) => [...prev, { id, task, events: [], answer: null, status: "running" }])
+    setTurns((prev) => [...prev, { id, task, events: [], results: [], answer: null, status: "running" }])
     setDraft("")
   }
 
@@ -270,6 +278,17 @@ function TurnView({ turn }: { turn: Turn }) {
       </div>
 
       {turn.events.length > 0 && <ActivityPanel events={turn.events} />}
+
+      {turn.results.map((result, i) => (
+        <Card key={i}>
+          <CardHeader>
+            <CardTitle>Query result</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ToolMarkdown>{result}</ToolMarkdown>
+          </CardContent>
+        </Card>
+      ))}
 
       {turn.status === "running" && (
         <p className="text-sm text-muted-foreground">Working…</p>

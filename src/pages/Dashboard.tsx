@@ -8,6 +8,12 @@ import { Button } from "@/components/ui/button"
 import api from "@/lib/http/client"
 import { Label } from "@/components/ui/label"
 import { Trash, RotateCcw } from "lucide-react"
+import { Input } from "@/components/ui/input"
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover"
 
 import {
   Card,
@@ -83,6 +89,58 @@ const PAGE_SIZE_OPTIONS = [
   { value: "50", label: "50" },
 ]
 
+// Regenerate button with a popover that collects an optional instruction for the LLM.
+// The popover is portaled, so clicks inside it are stopped here to keep them from
+// selecting the card underneath.
+function RegenerateButton({
+  onRegenerate,
+}: {
+  onRegenerate: (extraInstruction: string) => Promise<unknown>
+}) {
+  const [open, setOpen] = useState(false)
+  const [extraInstruction, setExtraInstruction] = useState("")
+  const [isRegenerating, setIsRegenerating] = useState(false)
+
+  async function submit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault()
+    setIsRegenerating(true)
+    try {
+      const result = await onRegenerate(extraInstruction.trim())
+      if (result) {
+        setOpen(false)
+        setExtraInstruction("")
+      }
+    } finally {
+      setIsRegenerating(false)
+    }
+  }
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger render={
+        <Button variant="ghost" onClick={(e) => e.stopPropagation()}>
+          <RotateCcw size={15} />
+        </Button>
+      } />
+      <PopoverContent className="w-80" onClick={(e) => e.stopPropagation()}>
+        <form className="flex flex-col gap-3" onSubmit={submit}>
+          <Label htmlFor="extra-instruction">Regenerate dashboard</Label>
+          <Input
+            id="extra-instruction"
+            value={extraInstruction}
+            onChange={(e) => setExtraInstruction(e.target.value)}
+            placeholder="Extra instruction, e.g. use a bar chart colored by department"
+            disabled={isRegenerating}
+          />
+          <Button type="submit" disabled={isRegenerating}>
+            {isRegenerating ? <Spinner className="size-4" /> : "Regenerate"}
+          </Button>
+        </form>
+      </PopoverContent>
+    </Popover>
+  )
+}
+
 export default function Dashboard() {
   const [databaseSelected, setDatabaseSelected] = useState<String | null>(null);
   const [dashboardCards, setDashboardCards] = useState<DashboardRecord[]>([]);
@@ -150,15 +208,17 @@ export default function Dashboard() {
   }
 
   async function tryDashboardRegeneration(
-    dashboardCard:DashboardRecord
+    dashboardCard: DashboardRecord,
+    extraInstruction: string
   ) {
-    debugger;
     try {
       const response = await api.post(
         "/api/try_dashboard_regeneration",
-        { "mongodb_object_id":dashboardCard._id, 
-          "query":dashboardCard.metadata.query, 
-          "task": dashboardCard.text 
+        {
+          "mongodb_object_id": dashboardCard._id,
+          "query": dashboardCard.metadata.query,
+          "task": dashboardCard.text,
+          "extra_instruction": extraInstruction
         },
       )
       if (response.status === 200 && response.data.matched === 1) {
@@ -234,19 +294,9 @@ export default function Dashboard() {
           <CardFooter className="text-xs font-light">
             <div className="flex justify-end gap-5">
               {`Updated On: ${dashboardCard.metadata.update_timestamp}`}
-              <Tooltip>
-                <TooltipTrigger render={
-                  <Button variant="ghost"
-                  onClick={(e)=> {
-                    e.stopPropagation();
-                    tryDashboardRegeneration(dashboardCard)
-                  }}
-                  ><RotateCcw size={15}></RotateCcw></Button>
-                } />
-                <TooltipContent>
-                  <p>Regenerate Dashboard</p>
-                </TooltipContent>
-              </Tooltip>
+              <RegenerateButton
+                onRegenerate={(extraInstruction) => tryDashboardRegeneration(dashboardCard, extraInstruction)}
+              />
             </div>
 
           </CardFooter>
