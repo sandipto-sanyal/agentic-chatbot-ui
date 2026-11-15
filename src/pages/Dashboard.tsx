@@ -181,15 +181,14 @@ export default function Dashboard() {
 
   async function fetchDashboardData(
     database: string,
-    query: string,
-    plotly_code: string
-
+    mongodb_object_id: string
   ) {
     setIsLoadingData(true)
     try {
-      const response = await api.post(
+      // The server looks up the saved query and plotly code for this dashboard.
+      const response = await api.get(
         "/api/get_data",
-        { "database": database, "query": query, "plotly_code": plotly_code },
+        { params: { database, mongodb_object_id } },
       )
       if (response.status === 200) {
         setGetDataResponse(response.data)
@@ -273,9 +272,7 @@ export default function Dashboard() {
           : ""
           }`} onClick={() => {
             setSelectedCardId(dashboardCard._id)
-            fetchDashboardData(databaseSelected as string,
-              dashboardCard.metadata.query,
-              dashboardCard.metadata.plotly_code)
+            fetchDashboardData(databaseSelected as string, dashboardCard._id)
           }}>
           <CardHeader>
             <CardTitle>{dashboardCard.text}</CardTitle>
