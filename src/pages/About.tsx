@@ -2,33 +2,10 @@ import { Link } from "react-router-dom"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-
-const STEPS = [
-  {
-    title: "Read the schema",
-    description:
-      "The user's task and the database schema are read at the same time, so the agent knows which tables and columns exist before it writes any SQL.",
-    tags: ["get_database_schema"],
-  },
-  {
-    title: "Look for a similar past task",
-    description:
-      "The task is compared against tasks that were answered before. If a close match exists, its SQL is returned from the cache.",
-    tags: ["get_similar_tasks", "QuerySimilarityCache"],
-  },
-  {
-    title: "Reuse or generate",
-    description:
-      "On a cache hit, the saved query goes straight to the runner. On a miss, the agent simplifies the question into a query using the schema.",
-    tags: ["query_runner", "simplify_query"],
-  },
-  {
-    title: "Remember the answer",
-    description:
-      "After a fresh query is generated, the task and its query are stored so the next similar question can skip generation.",
-    tags: ["store_user_task"],
-  },
-]
+import { OrchestratorFlowPopover } from "@/components/orchestrator/orchestrator-flow-popover"
+import { FlowSteps } from "@/components/orchestrator/flow-steps"
+import { PrivacyHighlight } from "@/components/orchestrator/privacy-highlight"
+import { DashboardHighlight } from "@/components/orchestrator/dashboard-highlight"
 
 const HIGHLIGHTS = [
   {
@@ -51,45 +28,46 @@ const HIGHLIGHTS = [
 export default function About() {
   return (
     <main className="flex flex-col">
-      <section className="mx-auto flex w-full max-w-5xl flex-col gap-4 px-6 pt-16 pb-10">
-        <Badge variant="outline" className="w-fit">About</Badge>
-        <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">
-          How the agent answers your question
-        </h1>
-        <p className="max-w-2xl text-lg text-muted-foreground">
-          This app pairs a React chat interface with a Flask backend. Behind it,
-          an orchestrator turns plain-language tasks into SQL, and remembers
-          the queries it has already written so it can reuse them.
-        </p>
+      <section className="bg-linear-to-b from-brand-primary/5 to-transparent">
+        <div className="mx-auto flex w-full max-w-5xl flex-col gap-5 px-6 pt-20 pb-14">
+          <Badge variant="outline" className="w-fit">
+            About
+          </Badge>
+          <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">
+            How the agent answers your question
+          </h1>
+          <p className="max-w-2xl text-lg text-muted-foreground">
+            This app pairs a React chat interface with a Flask backend. Behind
+            it, an orchestrator turns plain-language tasks into SQL, and
+            remembers the queries it has already written so it can reuse them.
+          </p>
+        </div>
       </section>
 
-      <section className="mx-auto w-full max-w-5xl px-6 pb-10">
-        <h2 className="mb-6 text-2xl font-semibold tracking-tight">The query flow</h2>
-        <ol className="grid gap-6 md:grid-cols-2">
-          {STEPS.map((step, index) => (
-            <li key={step.title}>
-              <Card className="h-full">
-                <CardHeader>
-                  <span className="text-sm font-medium text-muted-foreground">
-                    Step {index + 1}
-                  </span>
-                  <CardTitle>{step.title}</CardTitle>
-                  <CardDescription>{step.description}</CardDescription>
-                  <div className="flex flex-wrap gap-2 pt-2">
-                    {step.tags.map((tag) => (
-                      <Badge key={tag} variant="secondary" className="font-mono">
-                        {tag}
-                      </Badge>
-                    ))}
-                  </div>
-                </CardHeader>
-              </Card>
-            </li>
-          ))}
-        </ol>
+      <section className="mx-auto w-full max-w-5xl px-6 pb-16">
+        <PrivacyHighlight />
       </section>
 
-      <section className="mx-auto w-full max-w-5xl px-6 pb-10">
+      <section className="mx-auto w-full max-w-5xl px-6 pb-16">
+        <DashboardHighlight />
+      </section>
+
+      <section className="mx-auto grid w-full max-w-5xl gap-12 px-6 pb-16 md:grid-cols-[1fr_1.2fr]">
+        <div className="flex flex-col gap-4">
+          <h2 className="text-2xl font-semibold tracking-tight">The query flow</h2>
+          <p className="text-muted-foreground">
+            Each question passes through the same five stages. The orchestrator
+            chooses the order, and each sub-agent does one job.
+          </p>
+          <div>
+            <OrchestratorFlowPopover />
+          </div>
+        </div>
+        <FlowSteps />
+      </section>
+
+      <section className="mx-auto w-full max-w-5xl px-6 pb-16">
+        <h2 className="mb-6 text-2xl font-semibold tracking-tight">Why it works this way</h2>
         <div className="grid gap-6 md:grid-cols-3">
           {HIGHLIGHTS.map((item) => (
             <Card key={item.title}>
@@ -102,8 +80,8 @@ export default function About() {
         </div>
       </section>
 
-      <section className="mx-auto flex w-full max-w-5xl flex-col items-start gap-4 px-6 pt-4 pb-20">
-        <p className="text-muted-foreground">Want to see it in action?</p>
+      <section className="mx-auto flex w-full max-w-5xl flex-col items-start gap-4 px-6 pb-24">
+        <p className="text-lg text-muted-foreground">Want to see it in action?</p>
         <Button size="lg" render={<Link to="/chat" />}>
           Try the chatbot
         </Button>

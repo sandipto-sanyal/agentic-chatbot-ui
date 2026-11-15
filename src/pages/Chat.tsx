@@ -111,7 +111,7 @@ function applyMessage(turns: Turn[], message: ServerMessage): Turn[] {
 
   const turn = turns[index]
   const updated: Turn =
-    message.type_ === "QueryRunnerMessage"
+    (message.type_ === "QueryRunnerMessage") ||(message.type_ === "OrchestratorMessage") 
       ? { ...turn, answer: contentToText(message.content), status: "done" }
       : { ...turn, events: [...turn.events, message] }
 
