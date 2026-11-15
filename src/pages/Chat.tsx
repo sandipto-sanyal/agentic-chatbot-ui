@@ -256,7 +256,7 @@ export default function Chat() {
         />
         <div className="h-6 w-px shrink-0 bg-border" aria-hidden="true" />
         {renderDatabases()}
-        <Button type="submit" disabled={!canSend} className="h-9 shrink-0 px-4">
+        <Button type="submit" disabled={!canSend} className="h-9 shrink-0 px-4 bg-brand-primary">
           Send
         </Button>
       </form>

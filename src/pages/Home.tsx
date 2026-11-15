@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom"
-import { Activity, CheckCircle2, LoaderCircle, Network, Wrench } from "lucide-react"
+import { Activity, CheckCircle2, LoaderCircle, Network, Wrench, ChartNoAxesCombined } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -25,6 +25,12 @@ const FEATURES = [
     title: "Orchestrated subagents",
     description:
       "Complex tasks are split across subagents by an orchestrator, and each subagent's progress is shown as it runs.",
+  },
+  {
+    icon: ChartNoAxesCombined,
+    title: "Real-time dashboards",
+    description:
+      "Saved dashboards re-run their SQL each time you open them, so charts show the current data rather than a snapshot.",
   },
 ]
 
@@ -104,7 +110,7 @@ export default function Home() {
 
       <section className="mx-auto w-full max-w-5xl px-6 pb-20">
         <h2 className="mb-6 text-2xl font-semibold tracking-tight">What you get</h2>
-        <div className="grid gap-6 md:grid-cols-3">
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
           {FEATURES.map(({ icon: Icon, title, description }) => (
             <Card key={title}>
               <CardHeader>
