@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button"
 
 import api from "@/lib/http/client"
 import { Label } from "@/components/ui/label"
-import { Trash } from "lucide-react"
+import { Trash, RotateCcw } from "lucide-react"
 
 import {
   Card,
@@ -33,6 +33,12 @@ import Plot from 'react-plotly.js';
 import type { Layout } from "plotly.js"
 
 import { Spinner } from "@/components/ui/spinner"
+
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
 
 
 interface DashboardMetadata {
@@ -142,6 +148,36 @@ export default function Dashboard() {
       setIsLoadingData(false)
     }
   }
+
+  async function tryDashboardRegeneration(
+    dashboardCard:DashboardRecord
+  ) {
+    debugger;
+    try {
+      const response = await api.post(
+        "/api/try_dashboard_regeneration",
+        { "mongodb_object_id":dashboardCard._id, 
+          "query":dashboardCard.metadata.query, 
+          "task": dashboardCard.text 
+        },
+      )
+      if (response.status === 200 && response.data.matched === 1) {
+        // Regeneration rewrites the saved chart code, so reload the cards to show it.
+        await getDashboards(databaseSelected as string)
+        return response.data
+      }
+      toast.add({
+        description: "Dashboard could not be regenerated",
+        type: "error"
+      })
+    }
+    catch {
+      toast.add({
+        description: "Error while regenerating dashboard",
+        type: "error"
+      })
+    }
+  }
   function DatabaseSelect() {
     return (
       <div>
@@ -196,7 +232,23 @@ export default function Dashboard() {
           <CardContent>
           </CardContent>
           <CardFooter className="text-xs font-light">
-            {`Updated On: ${dashboardCard.metadata.update_timestamp}`}
+            <div className="flex justify-end gap-5">
+              {`Updated On: ${dashboardCard.metadata.update_timestamp}`}
+              <Tooltip>
+                <TooltipTrigger render={
+                  <Button variant="ghost"
+                  onClick={(e)=> {
+                    e.stopPropagation();
+                    tryDashboardRegeneration(dashboardCard)
+                  }}
+                  ><RotateCcw size={15}></RotateCcw></Button>
+                } />
+                <TooltipContent>
+                  <p>Regenerate Dashboard</p>
+                </TooltipContent>
+              </Tooltip>
+            </div>
+
           </CardFooter>
         </Card>
       </div>
