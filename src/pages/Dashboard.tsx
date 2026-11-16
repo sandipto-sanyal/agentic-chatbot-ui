@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { DATABASES } from "@/common/databases"
 import { paletteColor } from "@/common/plotly_palette"
@@ -40,11 +40,6 @@ import type { Layout } from "plotly.js"
 
 import { Spinner } from "@/components/ui/spinner"
 
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip"
 
 
 interface DashboardMetadata {
@@ -71,9 +66,7 @@ type GetData_Traces = {
   y: Array<string | number>;
   marker?: { color?: string };
 }
-type GetData_Layout = {
 
-}
 type GetDataResponse = {
   data: GetData_DataType;
   traces: GetData_Traces[];

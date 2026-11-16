@@ -2,10 +2,15 @@ import { Link } from "react-router-dom"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { OrchestratorFlowPopover } from "@/components/orchestrator/orchestrator-flow-popover"
+
 import { FlowSteps } from "@/components/orchestrator/flow-steps"
 import { PrivacyHighlight } from "@/components/orchestrator/privacy-highlight"
 import { DashboardHighlight } from "@/components/orchestrator/dashboard-highlight"
+import { Mermaid } from "@/components/orchestrator/mermaid"
+import { useEffect, useState } from "react"
+import api from "@/lib/http/client"
+import { Toaster, toast } from "@/components/ui/toast"
+
 
 const HIGHLIGHTS = [
   {
@@ -26,6 +31,27 @@ const HIGHLIGHTS = [
 ]
 
 export default function About() {
+  const [mermaid, setMermaid] = useState<string | null>(null)
+
+  // On page load: GET {VITE_HTTP_URL}/api/get_mermaid
+  useEffect(() => {
+    let cancelled = false
+    api.get<{ mermaid: string }>("/api/get_mermaid")
+      .then((response) => {
+        if (!cancelled) setMermaid(response.data.mermaid)
+      })
+      .catch(() => {
+        if (!cancelled) {
+          toast.add({
+            description: "Could not load the orchestrator flow.",
+            type: "error",
+          })
+        }
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [])
   return (
     <main className="flex flex-col">
       <section className="bg-linear-to-b from-brand-primary/5 to-transparent">
@@ -53,17 +79,11 @@ export default function About() {
       </section>
 
       <section className="mx-auto grid w-full max-w-5xl gap-12 px-6 pb-16 md:grid-cols-[1fr_1.2fr]">
-        <div className="flex flex-col gap-4">
-          <h2 className="text-2xl font-semibold tracking-tight">The query flow</h2>
-          <p className="text-muted-foreground">
-            Each question passes through the same five stages. The orchestrator
-            chooses the order, and each sub-agent does one job.
-          </p>
-          <div>
-            <OrchestratorFlowPopover />
-          </div>
-        </div>
         <FlowSteps />
+        <div>
+          <h1 className="flex justify-center">Mermaid Plot</h1>
+          <Mermaid chart={mermaid as string}></Mermaid>
+        </div>
       </section>
 
       <section className="mx-auto w-full max-w-5xl px-6 pb-16">
@@ -86,6 +106,7 @@ export default function About() {
           Try the chatbot
         </Button>
       </section>
+      <Toaster />
     </main>
   )
 }

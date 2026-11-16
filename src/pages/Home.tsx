@@ -61,7 +61,7 @@ export default function Home() {
             </p>
             <div className="flex flex-wrap items-center gap-3">
               <Button size="lg" render={<Link to="/chat" />}>
-                Start chatting
+                Start Chatting
               </Button>
               <OrchestratorFlowPopover />
             </div>

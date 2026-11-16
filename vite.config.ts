@@ -12,4 +12,9 @@ export default defineConfig({
       '@': fileURLToPath(new URL('.', import.meta.url)),
     },
   },
+  build: {
+    // Output goes to a dedicated folder in the backend. emptyOutDir only clears this folder.
+    outDir: 'C:/Users/sandi/OneDrive/Documents/Freelance/freelance_demo_projects/agentic-chatbot-be/ui_dist',
+    emptyOutDir: true, // required because outDir is outside this project
+  },
 })

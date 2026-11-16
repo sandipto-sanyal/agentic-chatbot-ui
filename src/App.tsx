@@ -4,6 +4,7 @@ import About from "./pages/About";
 import Dashboard from "./pages/Dashboard";
 import Chat from "./pages/Chat";
 import TestPage from "./pages/Test";
+import OrchestratorFlow from "./pages/OrchestratorFlow"
 
 // NavLink marks the link whose route is currently open as active, so the
 // highlight follows the click and also works with back/forward and direct URLs.
@@ -26,6 +27,7 @@ export default function App() {
         <Route path="/chat" element={<Chat />} />
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/test" element={<TestPage />} />
+        <Route path="/orchestrator_flow" element={<OrchestratorFlow />} />
       </Routes>
     </BrowserRouter>
   );

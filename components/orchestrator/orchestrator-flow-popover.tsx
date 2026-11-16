@@ -31,7 +31,7 @@ export function OrchestratorFlowPopover() {
         <FlowSteps />
 
         <a
-          href="/orchestrator_flow_plotly.mmd"
+          href="/orchestrator_flow"
           target="_blank"
           rel="noreferrer"
           className="inline-flex w-fit items-center gap-1 text-sm font-medium text-brand-primary hover:underline"
